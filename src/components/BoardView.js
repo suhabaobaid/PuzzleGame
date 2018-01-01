@@ -17,7 +17,10 @@ class BoardView extends Component {
         this.state = {
             positions: null,
             currentTilesPositions: null,
-            emptySlot: 9
+            emptySlot: 9,
+            totalTiles: SIZE * SIZE,
+            allTilesHaveRendered: false,
+            tileWidths: {}
         };
     }
 
@@ -64,12 +67,33 @@ class BoardView extends Component {
                         onPress={this.onPress}
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
+                        onRender={this.onTileRender}
                     />
                 );
             }
         }
         return tiles;
     };
+
+    onTileRender = (tileNumber, layoutWidth) => {
+        const { tileWidths, totalTiles } = this.state;
+
+        const allTilesHaveRendered = tileWidths
+        && Object.keys(tileWidths).length >= totalTiles - 2;
+
+        if (allTilesHaveRendered) {
+            this.rearrangeTiles();
+        }
+
+        this.setState(prevState => ({
+            tileWidths: {
+                // keep all existing widths added previously
+                ...prevState.tileWidths,
+                // keep the index for calculating scrolling position for each day
+                [tileNumber]: layoutWidth
+            }
+        }));
+    }
 
     onPress = tileNumber => {
         let { currentTilesPositions, emptySlot } = this.state;
@@ -110,8 +134,21 @@ class BoardView extends Component {
         console.tron.log('win');
     }
 
+    async rearrangeTiles () {
+        await this.onPress(8);
+        await this.onPress(7);
+        await this.onPress(4);
+        await this.onPress(5);
+    }
+
     render() {
-        return <View style={styles.container}>{this.renderTiles()}</View>;
+        return (
+            <View style={styles.container}>
+                {
+                    this.renderTiles()
+                }
+            </View>
+        );
     }
 }
 

@@ -9,7 +9,8 @@ class Tile extends Component {
         onPress: PropTypes.func,
         tileNumber: PropTypes.number,
         positions: PropTypes.any,
-        currentTilesPositions: PropTypes.any
+        currentTilesPositions: PropTypes.any,
+        onRender: PropTypes.func.isRequired
     };
 
     constructor(props) {
@@ -20,8 +21,16 @@ class Tile extends Component {
         };
     }
 
+    onLayout = (event) => {
+        this.props.onRender(this.props.tileNumber, event.nativeEvent.layout.width);
+    }
+
     componentWillReceiveProps(nextProps) {
         if(this.props.currentTilesPositions[this.props.tileNumber] !== nextProps.currentTilesPositions[this.props.tileNumber]) {
+            this.props.doAnimation(currentPosition, {
+                top: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].top,
+                left: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].left
+            })
             Animated.parallel(
                 [
                     Animated.timing(
@@ -51,7 +60,9 @@ class Tile extends Component {
         let { tileStyle, textStyle, onPress, tileNumber } = this.props;
         let textColor = this.checkCorrectPosition() ? '#1bd2d4' : '#000';
         return (
-            <TouchableOpacity activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}>
+            <TouchableOpacity activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}
+                onLayout={this.onLayout}
+            >
                 <Animated.View style={[tileStyle, {
                     top: this.currentPosition.top,
                     left: this.currentPosition.left
