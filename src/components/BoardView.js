@@ -20,7 +20,8 @@ class BoardView extends Component {
             emptySlot: 9,
             totalTiles: SIZE * SIZE,
             allTilesHaveRendered: false,
-            tileWidths: {}
+            tileWidths: {},
+            isGameStarted: false
         };
     }
 
@@ -68,6 +69,7 @@ class BoardView extends Component {
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
                         onRender={this.onTileRender}
+                        doAnimation={this.doAnimation}
                     />
                 );
             }
@@ -99,15 +101,39 @@ class BoardView extends Component {
         let { currentTilesPositions, emptySlot } = this.state;
         var newCurrentTilesPositions = Object.assign({}, currentTilesPositions);
         var tmp = 0;
-        switch (currentTilesPositions[tileNumber]) {
-        case emptySlot + 3:
-        case emptySlot - 3:
-        case emptySlot + 1:
-        case emptySlot - 1:
-            tmp = newCurrentTilesPositions[tileNumber];
-            newCurrentTilesPositions[tileNumber] = emptySlot;
-            emptySlot = tmp;
-            break;
+        if(parseInt(currentTilesPositions[tileNumber]) % 3 === 0) {
+            switch (parseInt(currentTilesPositions[tileNumber])) {
+            case emptySlot + 3:
+            case emptySlot - 3:
+            case emptySlot + 1:
+                tmp = newCurrentTilesPositions[tileNumber];
+                newCurrentTilesPositions[tileNumber] = emptySlot;
+                emptySlot = tmp;
+                break;
+            }
+        }
+        else if(parseInt(currentTilesPositions[tileNumber]) % 3 === 1) {
+            switch (parseInt(currentTilesPositions[tileNumber])) {
+            case emptySlot + 3:
+            case emptySlot - 3:
+            case emptySlot - 1:
+                tmp = newCurrentTilesPositions[tileNumber];
+                newCurrentTilesPositions[tileNumber] = emptySlot;
+                emptySlot = tmp;
+                break;
+            }
+        }
+        else {
+            switch (parseInt(currentTilesPositions[tileNumber])) {
+            case emptySlot + 3:
+            case emptySlot - 3:
+            case emptySlot + 1:
+            case emptySlot - 1:
+                tmp = newCurrentTilesPositions[tileNumber];
+                newCurrentTilesPositions[tileNumber] = emptySlot;
+                emptySlot = tmp;
+                break;
+            }
         }
 
         let check = this.isWinner(newCurrentTilesPositions);
@@ -115,8 +141,10 @@ class BoardView extends Component {
             currentTilesPositions: newCurrentTilesPositions,
             emptySlot
         });
-        if(check)
+        if(check && this.state.isGameStarted)
             this.win();
+
+        return true;
     };
 
     isWinner = (tilesPositions) => {
@@ -136,9 +164,31 @@ class BoardView extends Component {
 
     async rearrangeTiles () {
         await this.onPress(8);
-        await this.onPress(7);
-        await this.onPress(4);
-        await this.onPress(5);
+
+        for(var i = 0; i < 50; i++) {
+            let { emptySlot, currentTilesPositions } = this.state;
+            let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
+            let randomNumber = this.generateRandomNumber();
+            // console.tron.log(emptySlot);
+            // console.tron.log(availableTiles[randomNumber]);
+            if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
+                var selectedTile = null;
+                for (const tile in currentTilesPositions) { // get the key at the selectedPosition
+                    if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
+                        selectedTile = tile;
+                        break;
+                    }
+                }
+                // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
+                let result = await this.onPress(parseInt(selectedTile));
+                setTimeout(() => {console.log(result);}, 5000);
+            }
+        }
+        this.setState({ isGameStarted: true });
+    }
+
+    generateRandomNumber = () => {
+        return Math.floor(Math.random() * 4);
     }
 
     render() {

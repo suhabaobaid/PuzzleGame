@@ -27,10 +27,6 @@ class Tile extends Component {
 
     componentWillReceiveProps(nextProps) {
         if(this.props.currentTilesPositions[this.props.tileNumber] !== nextProps.currentTilesPositions[this.props.tileNumber]) {
-            this.props.doAnimation(currentPosition, {
-                top: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].top,
-                left: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].left
-            })
             Animated.parallel(
                 [
                     Animated.timing(
