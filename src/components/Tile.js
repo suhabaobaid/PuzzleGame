@@ -7,18 +7,56 @@ class Tile extends Component {
         tileStyle: PropTypes.any,
         textStyle: PropTypes.any,
         onPress: PropTypes.func,
-        tileNumber: PropTypes.number
+        tileNumber: PropTypes.number,
+        positions: PropTypes.any,
+        currentTilesPositions: PropTypes.any
     };
 
+    constructor(props) {
+        super(props);
+        this.currentPosition = {
+            left: new Animated.Value(props.positions[props.currentTilesPositions[props.tileNumber]].left),
+            top: new Animated.Value(props.positions[props.currentTilesPositions[props.tileNumber]].top)
+        };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if(this.props.currentTilesPositions[this.props.tileNumber] !== nextProps.currentTilesPositions[this.props.tileNumber]) {
+            Animated.parallel(
+                [
+                    Animated.timing(
+                        this.currentPosition.top,
+                        {
+                            toValue: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].top,
+                            duration: 250
+                        }
+                    ),
+                    Animated.timing(
+                        this.currentPosition.left,
+                        {
+                            toValue: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].left,
+                            duration: 250
+                        }
+                    )
+                ]
+            ).start();
+        }
+    }
+
+    checkCorrectPosition = () => {
+        return (this.props.tileNumber === this.props.currentTilesPositions[this.props.tileNumber]);
+    }
+
     render() {
-        let { tileStyle, textStyle, onPress, tileNumber, position } = this.props;
+        let { tileStyle, textStyle, onPress, tileNumber } = this.props;
+        let textColor = this.checkCorrectPosition() ? '#1bd2d4' : '#000';
         return (
-            <TouchableOpacity onPress={() => onPress(tileNumber)}>
+            <TouchableOpacity activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}>
                 <Animated.View style={[tileStyle, {
-                    top: position.top,
-                    left: position.left
+                    top: this.currentPosition.top,
+                    left: this.currentPosition.left
                 }]}>
-                    <Text style={textStyle}>1</Text>
+                    <Text style={[textStyle, {color: textColor}]}>{tileNumber}</Text>
                 </Animated.View>
             </TouchableOpacity>
         );

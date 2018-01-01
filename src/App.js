@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import GameScreen from './screens/GameScreen';
 
@@ -13,10 +13,18 @@ import GameScreen from './screens/GameScreen';
 export default class App extends Component<{}> {
     render() {
         return (
-            <GameScreen/>
+            <View style={styles.container}>
+                <GameScreen/>
+            </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#22242d'
+    }
 });
