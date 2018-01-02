@@ -12,6 +12,7 @@ var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
 var BORDER_RADIUS = CELL_PADDING * 2;
 var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
 var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
+var COUNT = 0;
 
 class BoardView extends Component {
 
@@ -39,6 +40,13 @@ class BoardView extends Component {
         this.state = this.INITIAL_STATE;
     }
 
+    componentDidMount() {
+        COUNT = 0;
+    }
+
+    componentWillReceiveProps() {
+    }
+
     renderTiles = () => {
         let { currentTilesPositions, positions } = this.state;
         var tiles = [];
@@ -54,7 +62,6 @@ class BoardView extends Component {
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
                         onRender={this.onTileRender}
-                        doAnimation={this.doAnimation}
                     />
                 );
             }
@@ -69,7 +76,7 @@ class BoardView extends Component {
         && Object.keys(tileWidths).length >= totalTiles - 2;
 
         if (allTilesHaveRendered) {
-            this.rearrangeTiles();
+            this.rearrangeTiles(8);
         }
 
         this.setState(prevState => ({
@@ -80,6 +87,40 @@ class BoardView extends Component {
                 [tileNumber]: layoutWidth
             }
         }));
+    }
+
+    async rearrangeTiles (number) {
+        let that = this;
+        if(COUNT < 25) {
+            await setTimeout(function() {
+                that.onTilePress(number);
+                var flag = false;
+                while(!flag) {
+                    let { emptySlot, currentTilesPositions } = that.state;
+                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
+                    let randomNumber = that.generateRandomNumber();
+                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
+                        var selectedTile = null;
+                        for (const tile in currentTilesPositions) { // get the key at the selectedPosition
+                            if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
+                                selectedTile = tile;
+                                break;
+                            }
+                        }
+                        flag = true;
+                        COUNT++;
+                        that.rearrangeTiles(parseInt(selectedTile));
+                    }
+                }
+            }, 200);
+        }
+        else {
+            this.setState({ isGameStarted: true });
+        }
+    }
+
+    generateRandomNumber = () => {
+        return Math.floor(Math.random() * 4);
     }
 
     onTilePress = tileNumber => {
@@ -146,52 +187,27 @@ class BoardView extends Component {
 
     onWin = () => {
         this.setState({
-            showNotification: true
+            showNotification: true,
+            isGameStarted: false
         }, () => {
+            this.props.setWin(true);
         });
     }
 
     onPlayagainPress = () => {
+        COUNT = 0;
         this.setState({
             showNotification: false
-        }, () => this.props.onPlayagainPress());
+        }, () => {
+            this.props.onPlayagainPress();
+            this.rearrangeTiles(8);
+        });
     }
 
     onExitPressed = () => {
         this.setState(this.INITIAL_STATE, () => {
             this.props.navigation.goBack();
         });
-    }
-
-    async rearrangeTiles () {
-        await this.onTilePress(8);
-        await this.onTilePress(7);
-        await this.onTilePress(4);
-
-        // for(var i = 0; i < 50; i++) {
-        //     let { emptySlot, currentTilesPositions } = this.state;
-        //     let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
-        //     let randomNumber = this.generateRandomNumber();
-        //     // console.tron.log(emptySlot);
-        //     // console.tron.log(availableTiles[randomNumber]);
-        //     if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
-        //         var selectedTile = null;
-        //         for (const tile in currentTilesPositions) { // get the key at the selectedPosition
-        //             if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-        //                 selectedTile = tile;
-        //                 break;
-        //             }
-        //         }
-        //         // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
-        //         this.onTilePress(parseInt(selectedTile));
-        //         // setTimeout(() => {console.log(result);}, 5000);
-        //     }
-        // }
-        this.setState({ isGameStarted: true });
-    }
-
-    generateRandomNumber = () => {
-        return Math.floor(Math.random() * 4);
     }
 
     render() {
