@@ -10,10 +10,31 @@ class GameScreen extends Component {
         navigation: PropTypes.any.isRequired
     }
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            isWin: true
+        };
+    }
+
+    setWin = (winStatus) => {
+        this.setState({
+            isWin: winStatus
+        });
+    }
+
+    onPlayagainPress = () => {
+        this.setState({
+            isWin: false
+        });
+    }
+
     render() {
         return (
             <View style={styles.container}>
-                <BoardView/>
+                <BoardView navigation={this.props.navigation} isWin={this.state.isWin} setWin={this.setWin}
+                    onPlayagainPress={this.onPlayagainPress}
+                />
             </View>
         );
     }

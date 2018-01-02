@@ -1,11 +1,10 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet, Text, Animated, Dimensions } from 'react-native';
+import React, { Component } from "react";
+import { View, StyleSheet, Text, Animated, Dimensions } from "react-native";
+import { action } from "@storybook/addon-actions";
 
-import Tile from './Tile';
-import Notification from './Notification';
+import Tile from "./Tile";
 
-var { width, height } = Dimensions.get('window');
+var { width, height } = Dimensions.get("window");
 var SIZE = 3;
 var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
 var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
@@ -14,17 +13,9 @@ var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
 var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
 
 class BoardView extends Component {
-
-    static propTypes = {
-        navigation: PropTypes.any.isRequired,
-        isWin: PropTypes.bool.isRequired,
-        setWin: PropTypes.func.isRequired,
-        onPlayagainPress: PropTypes.func.isRequired
-    }
-
     constructor(props) {
         super(props);
-        this.INITIAL_STATE = {
+        this.state = {
             positions: null,
             currentTilesPositions: null,
             emptySlot: 9,
@@ -33,18 +24,10 @@ class BoardView extends Component {
             tileWidths: {},
             isGameStarted: false
         };
-        this.state = this.INITIAL_STATE;
     }
 
     componentDidMount() {
         this.getPositions();
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if(!nextProps.isWin && this.props.isWin) {
-            this.getPositions();
-            this.rearrangeTiles();
-        }
     }
 
     getPositions = () => {
@@ -83,7 +66,7 @@ class BoardView extends Component {
                         tileNumber={i + 1}
                         tileStyle={styles.tile}
                         textStyle={styles.letter}
-                        onPress={this.onTilePress}
+                        onPress={this.onPress}
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
                         onRender={this.onTileRender}
@@ -115,7 +98,8 @@ class BoardView extends Component {
         }));
     }
 
-    onTilePress = tileNumber => {
+    onPress = tileNumber => {
+        action("Clicked tile");
         let { currentTilesPositions, emptySlot } = this.state;
         var newCurrentTilesPositions = Object.assign({}, currentTilesPositions);
         var tmp = 0;
@@ -177,23 +161,11 @@ class BoardView extends Component {
     }
 
     win = () => {
-        this.props.setWin(true);
-    }
-
-    onPlayagainPress = () => {
-        // this.setState(this.INITIAL_STATE);
-        this.props.onPlayagainPress();
-    }
-
-    onExitPressed = () => {
-        this.setState(this.INITIAL_STATE, () => {
-            this.props.navigation.goBack();
-        });
-
+        //console.tron.log('win');
     }
 
     async rearrangeTiles () {
-        await this.onTilePress(8);
+        await this.onPress(8);
 
         for(var i = 0; i < 50; i++) {
             let { emptySlot, currentTilesPositions } = this.state;
@@ -210,7 +182,7 @@ class BoardView extends Component {
                     }
                 }
                 // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
-                let result = await this.onTilePress(parseInt(selectedTile));
+                let result = await this.onPress(parseInt(selectedTile));
                 setTimeout(() => {console.log(result);}, 5000);
             }
         }
@@ -224,15 +196,6 @@ class BoardView extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Notification
-                    isVisible={this.props.isWin}
-                    animationIn={'zoomIn'}
-                    durationIn={500}
-                    animationOut={'zoomOut'}
-                    durationOut={500}
-                    onPlayagainPress={this.onPlayagainPress}
-                    onExitPressed={this.onExitPressed}
-                />
                 {
                     this.renderTiles()
                 }
@@ -255,7 +218,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFF",
-        opacity: 0.7
+        opacity: 0.9
     },
     letter: {
         fontSize: LETTER_SIZE,
