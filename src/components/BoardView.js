@@ -19,58 +19,25 @@ class BoardView extends Component {
         navigation: PropTypes.any.isRequired,
         isWin: PropTypes.bool.isRequired,
         setWin: PropTypes.func.isRequired,
-        onPlayagainPress: PropTypes.func.isRequired
+        onPlayagainPress: PropTypes.func.isRequired,
+        positions: PropTypes.any,
+        initialTilesPosition: PropTypes.any
     }
 
     constructor(props) {
         super(props);
         this.INITIAL_STATE = {
-            positions: null,
-            currentTilesPositions: null,
+            positions: this.props.positions,
+            currentTilesPositions: this.props.initialTilesPosition,
             emptySlot: 9,
             totalTiles: SIZE * SIZE,
             allTilesHaveRendered: false,
             tileWidths: {},
-            isGameStarted: false
+            isGameStarted: false,
+            showNotification: false
         };
         this.state = this.INITIAL_STATE;
     }
-
-    componentDidMount() {
-        this.getPositions();
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if(!nextProps.isWin && this.props.isWin) {
-            this.getPositions();
-            this.rearrangeTiles();
-        }
-    }
-
-    getPositions = () => {
-        var positions = {};
-        var currentTilesPositions = {};
-        for (var row = 0; row < SIZE; row++) {
-            for (var col = 0; col < SIZE; col++) {
-                var key = row * SIZE + col;
-                // var letter = index;
-                var position = {
-                    left: col * CELL_SIZE + CELL_PADDING,
-                    top: row * CELL_SIZE + CELL_PADDING
-                };
-                positions[key + 1] = position;
-                if((key + 1) !== SIZE * SIZE)
-                    currentTilesPositions[key + 1] = key + 1;
-            }
-        }
-        this.setState(
-            {
-                positions,
-                currentTilesPositions
-            },
-            () => this.renderTiles()
-        );
-    };
 
     renderTiles = () => {
         let { currentTilesPositions, positions } = this.state;
@@ -158,9 +125,10 @@ class BoardView extends Component {
         this.setState({
             currentTilesPositions: newCurrentTilesPositions,
             emptySlot
+        }, () => {
+            if(check && this.state.isGameStarted)
+                this.onWin();
         });
-        if(check && this.state.isGameStarted)
-            this.win();
 
         return true;
     };
@@ -176,44 +144,49 @@ class BoardView extends Component {
         return flag;
     }
 
-    win = () => {
-        this.props.setWin(true);
+    onWin = () => {
+        this.setState({
+            showNotification: true
+        }, () => {
+        });
     }
 
     onPlayagainPress = () => {
-        // this.setState(this.INITIAL_STATE);
-        this.props.onPlayagainPress();
+        this.setState({
+            showNotification: false
+        }, () => this.props.onPlayagainPress());
     }
 
     onExitPressed = () => {
         this.setState(this.INITIAL_STATE, () => {
             this.props.navigation.goBack();
         });
-
     }
 
     async rearrangeTiles () {
         await this.onTilePress(8);
+        await this.onTilePress(7);
+        await this.onTilePress(4);
 
-        for(var i = 0; i < 50; i++) {
-            let { emptySlot, currentTilesPositions } = this.state;
-            let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
-            let randomNumber = this.generateRandomNumber();
-            // console.tron.log(emptySlot);
-            // console.tron.log(availableTiles[randomNumber]);
-            if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
-                var selectedTile = null;
-                for (const tile in currentTilesPositions) { // get the key at the selectedPosition
-                    if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-                        selectedTile = tile;
-                        break;
-                    }
-                }
-                // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
-                let result = await this.onTilePress(parseInt(selectedTile));
-                setTimeout(() => {console.log(result);}, 5000);
-            }
-        }
+        // for(var i = 0; i < 50; i++) {
+        //     let { emptySlot, currentTilesPositions } = this.state;
+        //     let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
+        //     let randomNumber = this.generateRandomNumber();
+        //     // console.tron.log(emptySlot);
+        //     // console.tron.log(availableTiles[randomNumber]);
+        //     if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
+        //         var selectedTile = null;
+        //         for (const tile in currentTilesPositions) { // get the key at the selectedPosition
+        //             if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
+        //                 selectedTile = tile;
+        //                 break;
+        //             }
+        //         }
+        //         // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
+        //         this.onTilePress(parseInt(selectedTile));
+        //         // setTimeout(() => {console.log(result);}, 5000);
+        //     }
+        // }
         this.setState({ isGameStarted: true });
     }
 
@@ -225,11 +198,11 @@ class BoardView extends Component {
         return (
             <View style={styles.container}>
                 <Notification
-                    isVisible={this.props.isWin}
+                    isVisible={this.state.showNotification}
                     animationIn={'zoomIn'}
-                    durationIn={500}
+                    durationIn={250}
                     animationOut={'zoomOut'}
-                    durationOut={500}
+                    durationOut={100}
                     onPlayagainPress={this.onPlayagainPress}
                     onExitPressed={this.onExitPressed}
                 />
