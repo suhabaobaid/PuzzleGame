@@ -30,7 +30,7 @@ class BoardView extends Component {
         this.INITIAL_STATE = {
             positions: this.props.positions,
             currentTilesPositions: this.props.initialTilesPosition,
-            emptySlot: 9,
+            emptySlot: SIZE * SIZE ,
             totalTiles: SIZE * SIZE,
             allTilesHaveRendered: false,
             tileWidths: {},
@@ -76,7 +76,7 @@ class BoardView extends Component {
         && Object.keys(tileWidths).length >= totalTiles - 2;
 
         if (allTilesHaveRendered) {
-            this.rearrangeTiles(8);
+            this.rearrangeTiles(SIZE * SIZE - 1);
         }
 
         this.setState(prevState => ({
@@ -91,15 +91,15 @@ class BoardView extends Component {
 
     async rearrangeTiles (number) {
         let that = this;
-        if(COUNT < 25) {
+        if(COUNT < SIZE * SIZE * SIZE) {
             await setTimeout(function() {
                 that.onTilePress(number);
                 var flag = false;
                 while(!flag) {
                     let { emptySlot, currentTilesPositions } = that.state;
-                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
+                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + SIZE, emptySlot - SIZE];
                     let randomNumber = that.generateRandomNumber();
-                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
+                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < SIZE * SIZE + 1 ) { //picked a tile within the limit
                         var selectedTile = null;
                         for (const tile in currentTilesPositions) { // get the key at the selectedPosition
                             if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
@@ -127,10 +127,10 @@ class BoardView extends Component {
         let { currentTilesPositions, emptySlot } = this.state;
         var newCurrentTilesPositions = Object.assign({}, currentTilesPositions);
         var tmp = 0;
-        if(parseInt(currentTilesPositions[tileNumber]) % 3 === 0) {
+        if(parseInt(currentTilesPositions[tileNumber]) % SIZE === 0) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + SIZE:
+            case emptySlot - SIZE:
             case emptySlot + 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -138,10 +138,10 @@ class BoardView extends Component {
                 break;
             }
         }
-        else if(parseInt(currentTilesPositions[tileNumber]) % 3 === 1) {
+        else if(parseInt(currentTilesPositions[tileNumber]) % SIZE === 1) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + SIZE:
+            case emptySlot - SIZE:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -151,8 +151,8 @@ class BoardView extends Component {
         }
         else {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + SIZE:
+            case emptySlot - SIZE:
             case emptySlot + 1:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
