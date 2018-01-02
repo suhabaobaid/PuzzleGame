@@ -5,26 +5,20 @@
  */
 
 import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
+import { StatusBar } from "react-native";
 
-import GameScreen from './screens/GameScreen';
+import MainNavigator from './navigation/MainNavigation';
 
 
 export default class App extends Component<{}> {
+
+    componentDidMount() {
+        StatusBar.setBarStyle('light-content');
+    }
+
     render() {
         return (
-            <View style={styles.container}>
-                <GameScreen/>
-            </View>
+            <MainNavigator/>
         );
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#22242d'
-    }
-});
