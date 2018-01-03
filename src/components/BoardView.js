@@ -91,7 +91,7 @@ class BoardView extends Component {
     rearrangeTiles = async (number) => {
         let { boardConfig } = this.props;
         let that = this;
-        if(COUNT < 1) {
+        if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
             await setTimeout(function() {
                 that.onTilePress(number);
                 var flag = false;

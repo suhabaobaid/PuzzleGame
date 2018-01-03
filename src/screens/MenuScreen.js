@@ -6,8 +6,7 @@ import {
     Text,
     StyleSheet,
     AsyncStorage,
-    Animated,
-    Image
+    Animated
 } from "react-native";
 
 import { metrics } from "../config/BoardConfig";
