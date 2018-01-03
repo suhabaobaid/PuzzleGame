@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Dimensions, AsyncStorage } from 'react-native';
-import moment from 'moment';
 
 import BoardView from "../components/BoardView";
 
@@ -124,7 +123,6 @@ class GameScreen extends Component {
             }
         } catch (error) {
             console.tron.log(error);
-            this.saveData(currentValue);
         }
     }
 

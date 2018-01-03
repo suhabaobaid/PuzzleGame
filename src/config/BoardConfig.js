@@ -1,9 +1,9 @@
-// import { Dimensions } from 'react-native';
-//
-// export const metrics = {
-//     width: Dimensions.get('window').width,
-//     height: Dimensions.get('window').height
-// };
+import { Dimensions } from 'react-native';
+
+export const metrics = {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height
+};
 //
 // export var SIZE = 3;
 // export var CELL_SIZE = Math.floor(require('metrics').width * 0.2); //20% of the screen width

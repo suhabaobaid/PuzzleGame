@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFF",
-        opacity: 0.7
+        opacity: 1
     },
     letter: {
         opacity: 1,
