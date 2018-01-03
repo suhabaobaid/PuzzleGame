@@ -1,17 +1,17 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Text, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 import Tile from './Tile';
 import Notification from './Notification';
 
-var { width, height } = Dimensions.get('window');
-var SIZE = 3;
-var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
-var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
-var BORDER_RADIUS = CELL_PADDING * 2;
-var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
-var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
+// var { width, height } = Dimensions.get('window');
+// var SIZE = 3;
+// var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
+// var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
+// var BORDER_RADIUS = CELL_PADDING * 2;
+// var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
+// var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
 var COUNT = 0;
 
 class BoardView extends Component {
@@ -22,16 +22,18 @@ class BoardView extends Component {
         setWin: PropTypes.func.isRequired,
         onPlayagainPress: PropTypes.func.isRequired,
         positions: PropTypes.any,
-        initialTilesPosition: PropTypes.any
+        initialTilesPosition: PropTypes.any,
+        boardConfig: PropTypes.any
     }
 
     constructor(props) {
         super(props);
+        let { boardConfig } = props;
         this.INITIAL_STATE = {
             positions: this.props.positions,
             currentTilesPositions: this.props.initialTilesPosition,
-            emptySlot: SIZE * SIZE ,
-            totalTiles: SIZE * SIZE,
+            emptySlot: boardConfig.SIZE * boardConfig.SIZE ,
+            totalTiles: boardConfig.SIZE * boardConfig.SIZE,
             allTilesHaveRendered: false,
             tileWidths: {},
             isGameStarted: false,
@@ -49,15 +51,16 @@ class BoardView extends Component {
 
     renderTiles = () => {
         let { currentTilesPositions, positions } = this.state;
+        let { boardConfig } = this.props;
         var tiles = [];
         if (this.state.positions) {
-            for (var i = 0; i < SIZE * SIZE - 1; i++) {
+            for (var i = 0; i < boardConfig.SIZE * boardConfig.SIZE - 1; i++) {
                 tiles.push(
                     <Tile
                         key={i + 1}
                         tileNumber={i + 1}
-                        tileStyle={styles.tile}
-                        textStyle={styles.letter}
+                        tileStyle={[styles.tile, {width: boardConfig.TILE_SIZE,height: boardConfig.TILE_SIZE,borderRadius: boardConfig.BORDER_RADIUS}]}
+                        textStyle={[styles.letter, {fontSize: boardConfig.LETTER_SIZE}]}
                         onPress={this.onTilePress}
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
@@ -71,12 +74,13 @@ class BoardView extends Component {
 
     onTileRender = (tileNumber, layoutWidth) => {
         const { tileWidths, totalTiles } = this.state;
+        let { boardConfig } = this.props;
 
         const allTilesHaveRendered = tileWidths
         && Object.keys(tileWidths).length >= totalTiles - 2;
 
         if (allTilesHaveRendered) {
-            this.rearrangeTiles(SIZE * SIZE - 1);
+            this.rearrangeTiles(boardConfig.SIZE * boardConfig.SIZE - 1);
         }
 
         this.setState(prevState => ({
@@ -90,16 +94,17 @@ class BoardView extends Component {
     }
 
     async rearrangeTiles (number) {
+        let { boardConfig } = this.props;
         let that = this;
-        if(COUNT < SIZE * SIZE * SIZE) {
+        if(COUNT < boardConfig.SIZE * boardConfig.SIZE * boardConfig.SIZE) {
             await setTimeout(function() {
                 that.onTilePress(number);
                 var flag = false;
                 while(!flag) {
                     let { emptySlot, currentTilesPositions } = that.state;
-                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + SIZE, emptySlot - SIZE];
+                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + boardConfig.SIZE, emptySlot - boardConfig.SIZE];
                     let randomNumber = that.generateRandomNumber();
-                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < SIZE * SIZE + 1 ) { //picked a tile within the limit
+                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < boardConfig.SIZE * boardConfig.SIZE + 1 ) { //picked a tile within the limit
                         var selectedTile = null;
                         for (const tile in currentTilesPositions) { // get the key at the selectedPosition
                             if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
@@ -124,13 +129,14 @@ class BoardView extends Component {
     }
 
     onTilePress = tileNumber => {
+        let { boardConfig } = this.props;
         let { currentTilesPositions, emptySlot } = this.state;
         var newCurrentTilesPositions = Object.assign({}, currentTilesPositions);
         var tmp = 0;
-        if(parseInt(currentTilesPositions[tileNumber]) % SIZE === 0) {
+        if(parseInt(currentTilesPositions[tileNumber]) % boardConfig.SIZE === 0) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + SIZE:
-            case emptySlot - SIZE:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot + 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -138,10 +144,10 @@ class BoardView extends Component {
                 break;
             }
         }
-        else if(parseInt(currentTilesPositions[tileNumber]) % SIZE === 1) {
+        else if(parseInt(currentTilesPositions[tileNumber]) % boardConfig.SIZE === 1) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + SIZE:
-            case emptySlot - SIZE:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -151,8 +157,8 @@ class BoardView extends Component {
         }
         else {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + SIZE:
-            case emptySlot - SIZE:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot + 1:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
@@ -211,8 +217,9 @@ class BoardView extends Component {
     }
 
     render() {
+        let { boardConfig } = this.props;
         return (
-            <View style={styles.container}>
+            <View style={[styles.container, {width: boardConfig.CELL_SIZE * boardConfig.SIZE, height: boardConfig.CELL_SIZE * boardConfig.SIZE}]}>
                 <Notification
                     isVisible={this.state.showNotification}
                     animationIn={'zoomIn'}
@@ -232,22 +239,16 @@ class BoardView extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        width: CELL_SIZE * SIZE,
-        height: CELL_SIZE * SIZE,
         backgroundColor: "transparent"
     },
     tile: {
         position: "absolute",
-        width: TILE_SIZE,
-        height: TILE_SIZE,
-        borderRadius: BORDER_RADIUS,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFF",
         opacity: 0.7
     },
     letter: {
-        fontSize: LETTER_SIZE,
         opacity: 1,
         backgroundColor: "transparent"
     }

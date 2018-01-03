@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { View, Text, Animated, TouchableOpacity } from "react-native";
+import { Text, Animated, TouchableOpacity } from "react-native";
 
 class Tile extends Component {
     static propTypes = {
