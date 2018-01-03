@@ -46,9 +46,6 @@ class BoardView extends Component {
         COUNT = 0;
     }
 
-    componentWillReceiveProps() {
-    }
-
     renderTiles = () => {
         let { currentTilesPositions, positions } = this.state;
         let { boardConfig } = this.props;
@@ -65,6 +62,7 @@ class BoardView extends Component {
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
                         onRender={this.onTileRender}
+                        disabled={!this.state.isGameStarted}
                     />
                 );
             }
@@ -192,18 +190,21 @@ class BoardView extends Component {
     }
 
     onWin = () => {
-        this.setState({
-            showNotification: true,
-            isGameStarted: false
-        }, () => {
-            this.props.setWin(true);
-        });
+        setTimeout(() => {
+            this.setState({
+                showNotification: true,
+                isGameStarted: false
+            }, () => {
+                this.props.setWin(true);
+            });
+        }, 200);
     }
 
     onPlayagainPress = () => {
         COUNT = 0;
         this.setState({
-            showNotification: false
+            showNotification: false,
+            isGameStarted: false
         }, () => {
             this.props.onPlayagainPress();
             this.rearrangeTiles(8);
@@ -223,7 +224,7 @@ class BoardView extends Component {
                 <Notification
                     isVisible={this.state.showNotification}
                     animationIn={'zoomIn'}
-                    durationIn={250}
+                    durationIn={300}
                     animationOut={'zoomOut'}
                     durationOut={100}
                     onPlayagainPress={this.onPlayagainPress}

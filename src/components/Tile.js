@@ -10,7 +10,8 @@ class Tile extends Component {
         tileNumber: PropTypes.number,
         positions: PropTypes.any,
         currentTilesPositions: PropTypes.any,
-        onRender: PropTypes.func.isRequired
+        onRender: PropTypes.func.isRequired,
+        disabled: PropTypes.bool.isRequired
     };
 
     constructor(props) {
@@ -53,10 +54,10 @@ class Tile extends Component {
     }
 
     render() {
-        let { tileStyle, textStyle, onPress, tileNumber } = this.props;
+        let { tileStyle, textStyle, onPress, tileNumber, disabled } = this.props;
         let textColor = this.checkCorrectPosition() ? '#1bd2d4' : '#000';
         return (
-            <TouchableOpacity activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}
+            <TouchableOpacity disabled={disabled} activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}
                 onLayout={this.onLayout}
             >
                 <Animated.View style={[tileStyle, {
