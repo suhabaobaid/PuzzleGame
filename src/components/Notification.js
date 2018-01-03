@@ -12,7 +12,8 @@ class Notification extends Component {
         animationOut: PropTypes.string.isRequired,
         durationOut: PropTypes.number.isRequired,
         onPlayagainPress: PropTypes.func.isRequired,
-        onExitPressed: PropTypes.func.isRequired
+        onExitPressed: PropTypes.func.isRequired,
+        timer: PropTypes.string.isRequired
     }
 
     renderNotificationContent() {
@@ -23,8 +24,9 @@ class Notification extends Component {
                 </View>
                 <View style={styles.modalBody} >
                     <Text>
-                        You successfuly placed all the tiles in their correct positions.
-                        You did it in time blah.
+                        {
+                            'You successfuly placed all the tiles in their correct positions. You did it in time '+ this.props.timer
+                        }
                     </Text>
                 </View>
                 <View style={styles.modalFooter}>

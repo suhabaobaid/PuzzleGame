@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
+import TimeFormatter from 'minutes-seconds-milliseconds';
 
 import Tile from './Tile';
 import Notification from './Notification';
@@ -29,7 +30,10 @@ class BoardView extends Component {
             allTilesHaveRendered: false,
             tileWidths: {},
             isGameStarted: false,
-            showNotification: false
+            showNotification: false,
+            mainTimer: 0,
+            mainTimerStart: null,
+            isRunning: false
         };
         this.state = this.INITIAL_STATE;
     }
@@ -86,7 +90,7 @@ class BoardView extends Component {
     async rearrangeTiles (number) {
         let { boardConfig } = this.props;
         let that = this;
-        if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
+        if(COUNT < 1) {
             await setTimeout(function() {
                 that.onTilePress(number);
                 var flag = false;
@@ -110,12 +114,43 @@ class BoardView extends Component {
             }, 200);
         }
         else {
-            this.setState({ isGameStarted: true });
+            // Game is starting, buttons are enabled and game is starting
+            this.setState({ isGameStarted: true }, () => {
+                this.startStopTimer();
+            });
         }
     }
 
     generateRandomNumber = () => {
         return Math.floor(Math.random() * 4);
+    }
+
+    startStopTimer = () => {
+
+        let { isRunning, mainTimer } = this.state;
+
+        // Game is finished and timer is stopped
+        if(isRunning) {
+            clearInterval(this.interval);
+            console.tron.log(mainTimer);
+            this.setState({
+                isRunning: false
+            });
+            return ;
+        }
+
+        //Game just started and set the start of the timers
+        this.setState({
+            mainTimerStart: Date.now(),
+            isRunning: true
+        }, () => {
+            // update interval
+            this.interval = setInterval(() => {
+                this.setState({
+                    mainTimer: new Date() - this.state.mainTimerStart + mainTimer
+                });
+            }, 30);
+        });
     }
 
     onTilePress = tileNumber => {
@@ -163,8 +198,10 @@ class BoardView extends Component {
             currentTilesPositions: newCurrentTilesPositions,
             emptySlot
         }, () => {
-            if(check && this.state.isGameStarted)
+            if(check && this.state.isGameStarted) {
+                this.startStopTimer();
                 this.onWin();
+            }
         });
 
         return true;
@@ -197,7 +234,8 @@ class BoardView extends Component {
         COUNT = 0;
         this.setState({
             showNotification: false,
-            isGameStarted: false
+            isGameStarted: false,
+            mainTimer: 0
         }, () => {
             this.props.onPlayagainPress();
             this.rearrangeTiles(Math.pow(this.props.boardConfig.SIZE, 2) - 1);
@@ -213,27 +251,45 @@ class BoardView extends Component {
     render() {
         let { boardConfig } = this.props;
         return (
-            <View style={[styles.container, {width: boardConfig.CELL_SIZE * boardConfig.SIZE, height: boardConfig.CELL_SIZE * boardConfig.SIZE}]}>
-                <Notification
-                    isVisible={this.state.showNotification}
-                    animationIn={'zoomIn'}
-                    durationIn={300}
-                    animationOut={'zoomOut'}
-                    durationOut={100}
-                    onPlayagainPress={this.onPlayagainPress}
-                    onExitPressed={this.onExitPressed}
-                />
-                {
-                    this.renderTiles()
-                }
+            <View style={styles.mainContainer}>
+                <View style={styles.timerContainer}>
+                    <Text style={styles.timerText}>
+                        { TimeFormatter(this.state.mainTimer) }
+                    </Text>
+                </View>
+                <View style={[styles.boardContainer, {width: boardConfig.CELL_SIZE * boardConfig.SIZE, height: boardConfig.CELL_SIZE * boardConfig.SIZE}]}>
+                    <Notification
+                        isVisible={this.state.showNotification}
+                        animationIn={'zoomIn'}
+                        durationIn={300}
+                        animationOut={'zoomOut'}
+                        durationOut={100}
+                        onPlayagainPress={this.onPlayagainPress}
+                        onExitPressed={this.onExitPressed}
+                        timer={TimeFormatter(this.state.mainTimer)}
+                    />
+                    {
+                        this.renderTiles()
+                    }
+                </View>
             </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
-    container: {
+    mainContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    boardContainer: {
         backgroundColor: "transparent"
+    },
+    timerContainer: {
+        position: 'absolute',
+        top: 40,
+        left: 20
     },
     tile: {
         position: "absolute",
@@ -245,6 +301,10 @@ const styles = StyleSheet.create({
     letter: {
         opacity: 1,
         backgroundColor: "transparent"
+    },
+    timerText: {
+        color: '#FFF',
+        fontSize: 30
     }
 });
 
