@@ -6,7 +6,8 @@ import {
     Text,
     StyleSheet,
     AsyncStorage,
-    Animated
+    Animated,
+    Image
 } from "react-native";
 
 import { metrics } from "../config/BoardConfig";
@@ -92,8 +93,21 @@ class MenuScreen extends Component {
             outputRange: [Math.floor(metrics.height) + 100, Math.floor(metrics.height * 0.75)]
         });
 
+        let IconPosition = this.animated4.interpolate({
+            inputRange: [0, 1],
+            outputRange: [-400, -100]
+        });
+
         return (
             <View style={styles.container}>
+                <Animated.Image
+                    source={require('../assets/PuzzleIcon.png')}
+                    style={{
+                        position: 'absolute',
+                        top: IconPosition,
+                        left: Math.floor(metrics.width * 0.1)
+                    }}
+                />
                 <Animated.View
                     style={[styles.buttonView,
                         {
@@ -150,9 +164,7 @@ class MenuScreen extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: "center",
-        backgroundColor: "#22242d",
-        paddingVertical: 100
+        backgroundColor: "#22242d"
     },
     typeButton: {
         width: metrics.width * 0.8,
