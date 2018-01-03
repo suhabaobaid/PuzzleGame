@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     modalBody: {
         marginVertical: 20,
         alignItems: 'center',
-        marginHorizontal: 10
+        marginHorizontal: 20
     },
     modalFooter: {
         marginTop: 20

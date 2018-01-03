@@ -5,15 +5,7 @@ import { View, StyleSheet } from 'react-native';
 import Tile from './Tile';
 import Notification from './Notification';
 
-// var { width, height } = Dimensions.get('window');
-// var SIZE = 3;
-// var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
-// var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
-// var BORDER_RADIUS = CELL_PADDING * 2;
-// var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
-// var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
 var COUNT = 0;
-
 class BoardView extends Component {
 
     static propTypes = {
@@ -32,8 +24,8 @@ class BoardView extends Component {
         this.INITIAL_STATE = {
             positions: this.props.positions,
             currentTilesPositions: this.props.initialTilesPosition,
-            emptySlot: boardConfig.SIZE * boardConfig.SIZE ,
-            totalTiles: boardConfig.SIZE * boardConfig.SIZE,
+            emptySlot: Math.pow(boardConfig.SIZE, 2) ,
+            totalTiles: Math.pow(boardConfig.SIZE, 2),
             allTilesHaveRendered: false,
             tileWidths: {},
             isGameStarted: false,
@@ -51,12 +43,12 @@ class BoardView extends Component {
         let { boardConfig } = this.props;
         var tiles = [];
         if (this.state.positions) {
-            for (var i = 0; i < boardConfig.SIZE * boardConfig.SIZE - 1; i++) {
+            for (var i = 0; i < Math.pow(boardConfig.SIZE, 2) - 1; i++) {
                 tiles.push(
                     <Tile
                         key={i + 1}
                         tileNumber={i + 1}
-                        tileStyle={[styles.tile, {width: boardConfig.TILE_SIZE,height: boardConfig.TILE_SIZE,borderRadius: boardConfig.BORDER_RADIUS}]}
+                        tileStyle={[styles.tile, {width: boardConfig.TILE_SIZE, height: boardConfig.TILE_SIZE, borderRadius: boardConfig.BORDER_RADIUS}]}
                         textStyle={[styles.letter, {fontSize: boardConfig.LETTER_SIZE}]}
                         onPress={this.onTilePress}
                         currentTilesPositions={currentTilesPositions}
@@ -78,7 +70,7 @@ class BoardView extends Component {
         && Object.keys(tileWidths).length >= totalTiles - 2;
 
         if (allTilesHaveRendered) {
-            this.rearrangeTiles(boardConfig.SIZE * boardConfig.SIZE - 1);
+            this.rearrangeTiles(Math.pow(boardConfig.SIZE, 2) - 1);
         }
 
         this.setState(prevState => ({
@@ -94,7 +86,7 @@ class BoardView extends Component {
     async rearrangeTiles (number) {
         let { boardConfig } = this.props;
         let that = this;
-        if(COUNT < boardConfig.SIZE * boardConfig.SIZE * boardConfig.SIZE) {
+        if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
             await setTimeout(function() {
                 that.onTilePress(number);
                 var flag = false;
@@ -102,7 +94,7 @@ class BoardView extends Component {
                     let { emptySlot, currentTilesPositions } = that.state;
                     let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + boardConfig.SIZE, emptySlot - boardConfig.SIZE];
                     let randomNumber = that.generateRandomNumber();
-                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < boardConfig.SIZE * boardConfig.SIZE + 1 ) { //picked a tile within the limit
+                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < Math.pow(boardConfig.SIZE, 2) + 1 ) { //picked a tile within the limit
                         var selectedTile = null;
                         for (const tile in currentTilesPositions) { // get the key at the selectedPosition
                             if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
@@ -200,6 +192,7 @@ class BoardView extends Component {
         }, 200);
     }
 
+    //TODO: Perhaps need to set the state to the initial state
     onPlayagainPress = () => {
         COUNT = 0;
         this.setState({
@@ -207,7 +200,7 @@ class BoardView extends Component {
             isGameStarted: false
         }, () => {
             this.props.onPlayagainPress();
-            this.rearrangeTiles(8);
+            this.rearrangeTiles(Math.pow(this.props.boardConfig.SIZE, 2) - 1);
         });
     }
 
