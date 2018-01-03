@@ -12,7 +12,10 @@ const MainNavigator = StackNavigator({
         screen: GameScreen
     }
 }, {
-    headerMode: 'none'
+    headerMode: 'none',
+    onTransitionStart: (props) => {
+        console.tron.log(props);
+    }
 });
 
 export default MainNavigator;

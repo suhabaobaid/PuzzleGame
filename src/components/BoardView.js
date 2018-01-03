@@ -88,7 +88,7 @@ class BoardView extends Component {
         }));
     }
 
-    async rearrangeTiles (number) {
+    rearrangeTiles = async (number) => {
         let { boardConfig } = this.props;
         let that = this;
         if(COUNT < 1) {

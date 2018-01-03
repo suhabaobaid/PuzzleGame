@@ -92,37 +92,43 @@ class GameScreen extends Component {
         });
     }
 
-    async saveData (currentValue) {
+    saveData = async (currentValue) => {
+
+        //get the type of the game
+        let type = this.props.navigation.state.params.type;
         try {
-
-            //get the type of the game
-            let type = this.props.navigation.state.params.type;
-
             // parse the retrieved data
-            const retreivedValue = await AsyncStorage.getItem('puzzleHighScore' + type);
-            const ret_m_sec = retreivedValue.split(':');
-            const ret_sec_ms = ret_m_sec[1].split('.');
+            const retrievedValue = await AsyncStorage.getItem('puzzleHighScore' + type);
 
-            // parse the current data
-            const curr_m_sec = currentValue.split(':');
-            const curr_sec_ms = curr_m_sec[1].split('.');
+            if(retrievedValue !== null) { //there is an earlier saved score
+                const ret_m_sec = retrievedValue.split(':');
+                const ret_sec_ms = ret_m_sec[1].split('.');
 
-            //check if the retrieved value is better than the current one
-            if(parseInt(curr_m_sec[0]) < parseInt(ret_m_sec[0])) {
-                await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
-            }
-            else if (parseInt(curr_m_sec[0]) === parseInt(ret_m_sec[0])) {
-                if(parseInt(curr_sec_ms[0]) < parseInt(ret_sec_ms[0])) {
+                // parse the current data
+                const curr_m_sec = currentValue.split(':');
+                const curr_sec_ms = curr_m_sec[1].split('.');
+
+                //check if the retrieved value is better than the current one
+                if(parseInt(curr_m_sec[0]) < parseInt(ret_m_sec[0])) {
                     await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
                 }
-                else if (parseInt(curr_sec_ms[0]) === parseInt(ret_sec_ms[0])) {
-                    if(parseInt(curr_sec_ms[1]) < parseInt(ret_sec_ms[1])) {
+                else if (parseInt(curr_m_sec[0]) === parseInt(ret_m_sec[0])) {
+                    if(parseInt(curr_sec_ms[0]) < parseInt(ret_sec_ms[0])) {
                         await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
                     }
+                    else if (parseInt(curr_sec_ms[0]) === parseInt(ret_sec_ms[0])) {
+                        if(parseInt(curr_sec_ms[1]) < parseInt(ret_sec_ms[1])) {
+                            await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                        }
+                    }
                 }
+            } else { //no previous storage
+                await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
             }
+
         } catch (error) {
-            console.tron.log(error);
+            //if no value saved before
+            console.tron.log('In the get async storage, GameScreen. Message: ' + error);
         }
     }
 

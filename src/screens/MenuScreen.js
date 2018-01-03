@@ -32,6 +32,10 @@ class MenuScreen extends Component {
         this.animate();
     }
 
+    componentWillReceiveProps(props) {
+        console.tron.log(props);
+    }
+
     animate = () => {
         Animated.stagger(200, [
             Animated.spring(this.animated4, {
@@ -52,7 +56,7 @@ class MenuScreen extends Component {
         ]).start();
     };
 
-    async getData() {
+    getData = async() => {
         try {
             const value3 = await AsyncStorage.getItem("puzzleHighScore3");
             const value4 = await AsyncStorage.getItem("puzzleHighScore4");
@@ -94,7 +98,7 @@ class MenuScreen extends Component {
                     style={[styles.buttonView,
                         {
                             position: "absolute",
-                            top: Math.floor(metrics.height * 0.44),
+                            top: Math.floor(metrics.height * 0.5),
                             left: position3
                         }
                     ]}
@@ -111,7 +115,7 @@ class MenuScreen extends Component {
                     style={[styles.buttonView,
                         {
                             position: "absolute",
-                            top: Math.floor(metrics.height * 0.55),
+                            top: Math.floor(metrics.height * 0.6),
                             left: position4
                         }
                     ]}
@@ -130,10 +134,10 @@ class MenuScreen extends Component {
                 }}>
                     <Text style={styles.highscoresLable}>Your highest scores are:</Text>
                     <View style={styles.scoreBoard}>
-                        <Text style={[styles.scoreLabel, {marginBottom: 10}]}>{'3X3 Puzzle game: .............. '}
+                        <Text style={[styles.scoreLabel, {marginBottom: 10}]}>{'3X3 Puzzle game: ........ '}
                             <Text style={highScore3 === 'None' ? styles.noScore : styles.score}>{highScore3}</Text>
                         </Text>
-                        <Text style={styles.scoreLabel}>{'4X4 Puzzle game: .............. '}
+                        <Text style={styles.scoreLabel}>{'4X4 Puzzle game: ........ '}
                             <Text style={highScore4 === 'None' ? styles.noScore : styles.score}>{highScore4}</Text>
                         </Text>
                     </View>
@@ -169,13 +173,14 @@ const styles = StyleSheet.create({
     },
     highscoresLable: {
         color: '#FFF',
-        fontSize: metrics.height * 0.04
+        fontSize: metrics.height * 0.04,
+        alignSelf: 'center'
     },
     scoreBoard: {
         width: metrics.width * 0.8,
         height: metrics.height * 0.075,
         justifyContent: "center",
-        marginTop: 20,
+        marginTop: 10,
         paddingHorizontal: 20,
         paddingVertical: 40
     },
