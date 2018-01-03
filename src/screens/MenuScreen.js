@@ -10,18 +10,19 @@ import {
 } from "react-native";
 
 import { metrics } from "../config/BoardConfig";
+import { observer, inject } from "mobx-react";
 
+@inject("gameStore")
+@observer
 class MenuScreen extends Component {
     static propTypes = {
-        navigation: PropTypes.any.isRequired
+        navigation: PropTypes.any.isRequired,
+        gameStore: PropTypes.any
     };
 
     constructor(props) {
         super(props);
-        this.state = {
-            highScore3: "",
-            highScore4: ""
-        };
+
         this.animated3 = new Animated.Value(0);
         this.animated4 = new Animated.Value(0);
         this.animatedScore = new Animated.Value(0);
@@ -30,10 +31,6 @@ class MenuScreen extends Component {
     componentDidMount() {
         this.getData();
         this.animate();
-    }
-
-    componentWillReceiveProps(props) {
-        console.tron.log(props);
     }
 
     animate = () => {
@@ -56,14 +53,17 @@ class MenuScreen extends Component {
         ]).start();
     };
 
+    // this gets the score from the persistence of the data (device storage when the app first loads)
     getData = async() => {
         try {
             const value3 = await AsyncStorage.getItem("puzzleHighScore3");
             const value4 = await AsyncStorage.getItem("puzzleHighScore4");
-            this.setState({
-                highScore3: value3 ? value3 : 'None',
-                highScore4: value4 ? value4 : 'None'
-            });
+            // this.setState({
+            //     highScore3: value3 ? value3 : 'None',
+            //     highScore4: value4 ? value4 : 'None'
+            // });
+            value3 ? this.props.gameStore.updateScore(3, value3) : null;
+            value4 ? this.props.gameStore.updateScore(4, value4) : null;
         } catch (error) {
             console.tron.log(error);
         }
@@ -75,7 +75,7 @@ class MenuScreen extends Component {
 
     render() {
 
-        const { highScore3, highScore4 } = this.state;
+        const { highScore3, highScore4 } = this.props.gameStore;
 
         let position3 = this.animated3.interpolate({
             inputRange: [0, 1],
@@ -134,10 +134,10 @@ class MenuScreen extends Component {
                 }}>
                     <Text style={styles.highscoresLable}>Your highest scores are:</Text>
                     <View style={styles.scoreBoard}>
-                        <Text style={[styles.scoreLabel, {marginBottom: 10}]}>{'3X3 Puzzle game: ........ '}
+                        <Text style={[styles.scoreLabel, {marginBottom: 10}]}>{'3X3 Puzzle Score: ........ '}
                             <Text style={highScore3 === 'None' ? styles.noScore : styles.score}>{highScore3}</Text>
                         </Text>
-                        <Text style={styles.scoreLabel}>{'4X4 Puzzle game: ........ '}
+                        <Text style={styles.scoreLabel}>{'4X4 Puzzle Score: ........ '}
                             <Text style={highScore4 === 'None' ? styles.noScore : styles.score}>{highScore4}</Text>
                         </Text>
                     </View>
@@ -192,12 +192,14 @@ const styles = StyleSheet.create({
     score: {
         fontSize: metrics.height * 0.025,
         backgroundColor: 'transparent',
-        color: '#12a4b5'
+        color: '#12a4b5',
+        alignSelf: 'center'
     },
     noScore: {
         fontSize: metrics.height * 0.025,
         backgroundColor: 'transparent',
-        color: '#b1b3e0'
+        color: '#b1b3e0',
+        alignSelf: 'center'
     }
 });
 

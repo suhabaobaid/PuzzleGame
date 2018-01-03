@@ -1,21 +1,17 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Dimensions, AsyncStorage } from 'react-native';
+import { observer, inject } from "mobx-react";
 
 import BoardView from "../components/BoardView";
 
-// var { width, height } = Dimensions.get('window');
-// var SIZE = 3;
-// var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
-// var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
-// var BORDER_RADIUS = CELL_PADDING * 2;
-// var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
-// var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
-
+@inject("gameStore")
+@observer
 class GameScreen extends Component {
 
     static propTypes = {
-        navigation: PropTypes.any.isRequired
+        navigation: PropTypes.any.isRequired,
+        gameStore: PropTypes.any
     }
 
     constructor(props) {
@@ -111,19 +107,23 @@ class GameScreen extends Component {
                 //check if the retrieved value is better than the current one
                 if(parseInt(curr_m_sec[0]) < parseInt(ret_m_sec[0])) {
                     await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                    this.props.gameStore.updateScore(type, currentValue);
                 }
                 else if (parseInt(curr_m_sec[0]) === parseInt(ret_m_sec[0])) {
                     if(parseInt(curr_sec_ms[0]) < parseInt(ret_sec_ms[0])) {
                         await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                        this.props.gameStore.updateScore(type, currentValue);
                     }
                     else if (parseInt(curr_sec_ms[0]) === parseInt(ret_sec_ms[0])) {
                         if(parseInt(curr_sec_ms[1]) < parseInt(ret_sec_ms[1])) {
                             await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                            this.props.gameStore.updateScore(type, currentValue);
                         }
                     }
                 }
             } else { //no previous storage
                 await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                this.props.gameStore.updateScore(type, currentValue);
             }
 
         } catch (error) {

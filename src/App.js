@@ -6,11 +6,16 @@
 
 import React, { Component } from "react";
 import { StatusBar, AsyncStorage } from "react-native";
+import { Provider } from 'mobx-react';
+import stores from './stores';
 
 import MainNavigator from './navigation/MainNavigation';
 
-
 export default class App extends Component<{}> {
+
+    constructor(props) {
+        super(props);
+    }
 
     componentDidMount() {
         StatusBar.setBarStyle('light-content');
@@ -35,7 +40,9 @@ export default class App extends Component<{}> {
 
     render() {
         return (
-            <MainNavigator/>
+            <Provider {...stores}>
+                <MainNavigator />
+            </Provider>
         );
     }
 }
