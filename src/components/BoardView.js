@@ -16,7 +16,8 @@ class BoardView extends Component {
         onPlayagainPress: PropTypes.func.isRequired,
         positions: PropTypes.any,
         initialTilesPosition: PropTypes.any,
-        boardConfig: PropTypes.any
+        boardConfig: PropTypes.any,
+        saveData: PropTypes.func.isRequired
     }
 
     constructor(props) {
@@ -132,7 +133,6 @@ class BoardView extends Component {
         // Game is finished and timer is stopped
         if(isRunning) {
             clearInterval(this.interval);
-            console.tron.log(mainTimer);
             this.setState({
                 isRunning: false
             });
@@ -220,6 +220,7 @@ class BoardView extends Component {
 
     onWin = () => {
         setTimeout(() => {
+            this.props.saveData(TimeFormatter(this.state.mainTimer));
             this.setState({
                 showNotification: true,
                 isGameStarted: false

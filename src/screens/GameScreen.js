@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, AsyncStorage } from 'react-native';
+import moment from 'moment';
 
 import BoardView from "../components/BoardView";
 
@@ -92,13 +93,48 @@ class GameScreen extends Component {
         });
     }
 
+    async saveData (currentValue) {
+        try {
+
+            //get the type of the game
+            let type = this.props.navigation.state.params.type;
+
+            // parse the retrieved data
+            const retreivedValue = await AsyncStorage.getItem('puzzleHighScore' + type);
+            const ret_m_sec = retreivedValue.split(':');
+            const ret_sec_ms = ret_m_sec[1].split('.');
+
+            // parse the current data
+            const curr_m_sec = currentValue.split(':');
+            const curr_sec_ms = curr_m_sec[1].split('.');
+
+            //check if the retrieved value is better than the current one
+            if(parseInt(curr_m_sec[0]) < parseInt(ret_m_sec[0])) {
+                await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+            }
+            else if (parseInt(curr_m_sec[0]) === parseInt(ret_m_sec[0])) {
+                if(parseInt(curr_sec_ms[0]) < parseInt(ret_sec_ms[0])) {
+                    await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                }
+                else if (parseInt(curr_sec_ms[0]) === parseInt(ret_sec_ms[0])) {
+                    if(parseInt(curr_sec_ms[1]) < parseInt(ret_sec_ms[1])) {
+                        await AsyncStorage.setItem('puzzleHighScore' + type, currentValue);
+                    }
+                }
+            }
+        } catch (error) {
+            console.tron.log(error);
+            this.saveData(currentValue);
+        }
+    }
+
     render() {
         const { isWin, initialTilesPosition, positions } = this.state;
         return (
             <View style={styles.container}>
                 <BoardView navigation={this.props.navigation} isWin={isWin} setWin={this.setWin}
                     onPlayagainPress={this.onPlayagainPress} initialTilesPosition={initialTilesPosition}
-                    positions={positions} boardConfig={this.boardConfig}
+                    positions={positions} boardConfig={this.boardConfig} saveData={this.saveData}
                 />
             </View>
         );

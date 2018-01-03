@@ -1,11 +1,39 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, AsyncStorage } from 'react-native';
 
 class MenuScreen extends Component {
 
     static propTypes = {
         navigation: PropTypes.any.isRequired
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            highScore: ''
+        };
+    }
+
+    componentDidMount() {
+        this.getData();
+    }
+
+    async getData () {
+        try {
+            const value3 = await AsyncStorage.getItem('puzzleHighScore3');
+            const value4 = await AsyncStorage.getItem('puzzleHighScore4');
+            if (value3 !== null && value4 !== null){
+                // We have data!!
+                this.setState({
+                    highScore3: value3,
+                    highScore4: value4
+                });
+            }
+        } catch (error) {
+            console.tron.log(error);
+            this.getData();
+        }
     }
 
     onChosenGame = (gameType) => {
