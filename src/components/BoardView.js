@@ -270,10 +270,10 @@ class BoardView extends Component {
                     onPress={() => {
                         this.setState({
                             exitPressed: true
-                        }, () => {
-                            this.startStopTimer();
-                            this.onExitPressed();
                         });
+                        if(this.state.isGameStarted)
+                            this.startStopTimer();
+                        setTimeout(() => this.onExitPressed(), 200);
                     }}
                 >
                     <Text style={styles.exitButton}>
