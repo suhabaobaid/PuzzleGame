@@ -34,14 +34,14 @@ class Tile extends Component {
                         this.currentPosition.top,
                         {
                             toValue: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].top,
-                            duration: 150
+                            duration: 100
                         }
                     ),
                     Animated.timing(
                         this.currentPosition.left,
                         {
                             toValue: this.props.positions[nextProps.currentTilesPositions[this.props.tileNumber]].left,
-                            duration: 150
+                            duration: 100
                         }
                     )
                 ]

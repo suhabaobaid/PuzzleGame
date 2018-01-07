@@ -7,6 +7,10 @@ import Tile from './Tile';
 import Notification from './Notification';
 
 var COUNT = 0;
+var OCCURING_COUNT = {
+    tileNumber: '',
+    count: 0
+};
 class BoardView extends Component {
 
     static propTypes = {
@@ -106,8 +110,14 @@ class BoardView extends Component {
                             var selectedTile = null;
                             for (const tile in currentTilesPositions) { // get the key at the selectedPosition
                                 if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-                                    selectedTile = tile;
-                                    break;
+                                    if((tile == OCCURING_COUNT.tileNumber && OCCURING_COUNT.count < 2) || (tile != OCCURING_COUNT.tileNumber )) {
+                                        selectedTile = tile;
+                                        OCCURING_COUNT.count = tile != OCCURING_COUNT.tileNumber ? 0 : OCCURING_COUNT.count + 1;
+                                        break;
+                                    }
+                                    else if (tile == OCCURING_COUNT.tileNumber && OCCURING_COUNT.count == 2) {
+                                        break;
+                                    }
                                 }
                             }
                             flag = true;
@@ -273,6 +283,8 @@ class BoardView extends Component {
                         });
                         if(this.state.isGameStarted)
                             this.startStopTimer();
+
+                        // Add timeout to make sure that the last animation is done
                         setTimeout(() => this.onExitPressed(), 200);
                     }}
                 >
