@@ -9,7 +9,6 @@ import Button from "./Button";
 import CenterView from "./CenterView";
 import Welcome from "./Welcome";
 import BoardView from "./GameBoard/BoardView";
-import Notification from './Components/Notification';
 
 storiesOf("Welcome", module).add("to Storybook", () => (
     <Welcome showApp={linkTo("Button")} />
@@ -39,8 +38,4 @@ storiesOf("GameBoard", module).add("3X3", () => (
     >
         <BoardView />
     </View>
-));
-
-storiesOf("Notification", module).add("Modal Notification", () => (
-    <Notification/>
 ));

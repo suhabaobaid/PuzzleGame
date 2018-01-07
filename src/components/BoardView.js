@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Button, Dimensions, TouchableOpacity } from 'react-native';
 import TimeFormatter from 'minutes-seconds-milliseconds';
 
 import Tile from './Tile';
@@ -34,7 +34,8 @@ class BoardView extends Component {
             showNotification: false,
             mainTimer: 0,
             mainTimerStart: null,
-            isRunning: false
+            isRunning: false,
+            exitPressed: false
         };
         this.state = this.INITIAL_STATE;
     }
@@ -91,34 +92,37 @@ class BoardView extends Component {
     rearrangeTiles = async (number) => {
         let { boardConfig } = this.props;
         let that = this;
-        if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
-            await setTimeout(function() {
-                that.onTilePress(number);
-                var flag = false;
-                while(!flag) {
-                    let { emptySlot, currentTilesPositions } = that.state;
-                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + boardConfig.SIZE, emptySlot - boardConfig.SIZE];
-                    let randomNumber = that.generateRandomNumber();
-                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < Math.pow(boardConfig.SIZE, 2) + 1 ) { //picked a tile within the limit
-                        var selectedTile = null;
-                        for (const tile in currentTilesPositions) { // get the key at the selectedPosition
-                            if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-                                selectedTile = tile;
-                                break;
+
+        if(!this.state.exitPressed) {
+            if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
+                await setTimeout(function() {
+                    that.onTilePress(number);
+                    var flag = false;
+                    while(!flag) {
+                        let { emptySlot, currentTilesPositions } = that.state;
+                        let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + boardConfig.SIZE, emptySlot - boardConfig.SIZE];
+                        let randomNumber = that.generateRandomNumber();
+                        if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < Math.pow(boardConfig.SIZE, 2) + 1 ) { //picked a tile within the limit
+                            var selectedTile = null;
+                            for (const tile in currentTilesPositions) { // get the key at the selectedPosition
+                                if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
+                                    selectedTile = tile;
+                                    break;
+                                }
                             }
+                            flag = true;
+                            COUNT++;
+                            that.rearrangeTiles(parseInt(selectedTile));
                         }
-                        flag = true;
-                        COUNT++;
-                        that.rearrangeTiles(parseInt(selectedTile));
                     }
-                }
-            }, 200);
-        }
-        else {
-            // Game is starting, buttons are enabled and game is starting
-            this.setState({ isGameStarted: true }, () => {
-                this.startStopTimer();
-            });
+                }, 200);
+            }
+            else {
+                // Game is starting, buttons are enabled and game is starting
+                this.setState({ isGameStarted: true }, () => {
+                    this.startStopTimer();
+                });
+            }
         }
     }
 
@@ -254,10 +258,28 @@ class BoardView extends Component {
         return (
             <View style={styles.mainContainer}>
                 <View style={styles.timerContainer}>
+                    <Text style={styles.timerLabel}>
+                        TIME:
+                    </Text>
                     <Text style={styles.timerText}>
                         { TimeFormatter(this.state.mainTimer) }
                     </Text>
                 </View>
+                <TouchableOpacity
+                    style={styles.exitContainer}
+                    onPress={() => {
+                        this.setState({
+                            exitPressed: true
+                        }, () => {
+                            this.startStopTimer();
+                            this.onExitPressed();
+                        });
+                    }}
+                >
+                    <Text style={styles.exitButton}>
+                        X
+                    </Text>
+                </TouchableOpacity>
                 <View style={[styles.boardContainer, {width: boardConfig.CELL_SIZE * boardConfig.SIZE, height: boardConfig.CELL_SIZE * boardConfig.SIZE}]}>
                     <Notification
                         isVisible={this.state.showNotification}
@@ -303,9 +325,28 @@ const styles = StyleSheet.create({
         opacity: 1,
         backgroundColor: "transparent"
     },
+    timerLabel: {
+        color: '#e3e5e8',
+        fontSize: 15,
+        fontWeight: 'bold'
+    },
     timerText: {
         color: '#FFF',
-        fontSize: 30
+        fontSize: 25
+    },
+    exitContainer: {
+        position: 'absolute',
+        width: 25,
+        height: 25,
+        top: 40,
+        left: Dimensions.get('window').width - 30,
+        backgroundColor: '#FFF',
+        borderRadius: 50,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    exitButton: {
+        backgroundColor: 'transparent'
     }
 });
 

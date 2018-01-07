@@ -1,76 +1,65 @@
-import React, { Component } from "react";
-import { View, StyleSheet, Text, Animated, Dimensions } from "react-native";
-import { action } from "@storybook/addon-actions";
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { View, StyleSheet, Text, Button, Dimensions } from 'react-native';
+import TimeFormatter from 'minutes-seconds-milliseconds';
 
-import Tile from "./Tile";
+import Tile from './Tile';
+import Notification from './Notification';
 
-var { width, height } = Dimensions.get("window");
-var SIZE = 3;
-var CELL_SIZE = Math.floor(width * 0.2); //20% of the screen width
-var CELL_PADDING = Math.floor(CELL_SIZE * 0.05); //5% of the cell size
-var BORDER_RADIUS = CELL_PADDING * 2;
-var TILE_SIZE = CELL_SIZE - CELL_PADDING * 2;
-var LETTER_SIZE = Math.floor(TILE_SIZE * 0.75);
-
+var COUNT = 0;
 class BoardView extends Component {
+
+    static propTypes = {
+        navigation: PropTypes.any.isRequired,
+        isWin: PropTypes.bool.isRequired,
+        setWin: PropTypes.func.isRequired,
+        onPlayagainPress: PropTypes.func.isRequired,
+        positions: PropTypes.any,
+        initialTilesPosition: PropTypes.any,
+        boardConfig: PropTypes.any,
+        saveData: PropTypes.func.isRequired
+    }
+
     constructor(props) {
         super(props);
-        this.state = {
-            positions: null,
-            currentTilesPositions: null,
-            emptySlot: 9,
-            totalTiles: SIZE * SIZE,
+        let { boardConfig } = props;
+        this.INITIAL_STATE = {
+            positions: this.props.positions,
+            currentTilesPositions: this.props.initialTilesPosition,
+            emptySlot: Math.pow(boardConfig.SIZE, 2) ,
+            totalTiles: Math.pow(boardConfig.SIZE, 2),
             allTilesHaveRendered: false,
             tileWidths: {},
-            isGameStarted: false
+            isGameStarted: false,
+            showNotification: false,
+            mainTimer: 0,
+            mainTimerStart: null,
+            isRunning: false
         };
+        this.state = this.INITIAL_STATE;
     }
 
     componentDidMount() {
-        this.getPositions();
+        COUNT = 0;
     }
-
-    getPositions = () => {
-        var positions = {};
-        var currentTilesPositions = {};
-        for (var row = 0; row < SIZE; row++) {
-            for (var col = 0; col < SIZE; col++) {
-                var key = row * SIZE + col;
-                // var letter = index;
-                var position = {
-                    left: col * CELL_SIZE + CELL_PADDING,
-                    top: row * CELL_SIZE + CELL_PADDING
-                };
-                positions[key + 1] = position;
-                if((key + 1) !== SIZE * SIZE)
-                    currentTilesPositions[key + 1] = key + 1;
-            }
-        }
-        this.setState(
-            {
-                positions,
-                currentTilesPositions
-            },
-            () => this.renderTiles()
-        );
-    };
 
     renderTiles = () => {
         let { currentTilesPositions, positions } = this.state;
+        let { boardConfig } = this.props;
         var tiles = [];
         if (this.state.positions) {
-            for (var i = 0; i < SIZE * SIZE - 1; i++) {
+            for (var i = 0; i < Math.pow(boardConfig.SIZE, 2) - 1; i++) {
                 tiles.push(
                     <Tile
                         key={i + 1}
                         tileNumber={i + 1}
-                        tileStyle={styles.tile}
-                        textStyle={styles.letter}
-                        onPress={this.onPress}
+                        tileStyle={[styles.tile, {width: boardConfig.TILE_SIZE, height: boardConfig.TILE_SIZE, borderRadius: boardConfig.BORDER_RADIUS}]}
+                        textStyle={[styles.letter, {fontSize: boardConfig.LETTER_SIZE}]}
+                        onPress={this.onTilePress}
                         currentTilesPositions={currentTilesPositions}
                         positions={positions}
                         onRender={this.onTileRender}
-                        doAnimation={this.doAnimation}
+                        disabled={!this.state.isGameStarted}
                     />
                 );
             }
@@ -80,12 +69,13 @@ class BoardView extends Component {
 
     onTileRender = (tileNumber, layoutWidth) => {
         const { tileWidths, totalTiles } = this.state;
+        let { boardConfig } = this.props;
 
         const allTilesHaveRendered = tileWidths
         && Object.keys(tileWidths).length >= totalTiles - 2;
 
         if (allTilesHaveRendered) {
-            this.rearrangeTiles();
+            this.rearrangeTiles(Math.pow(boardConfig.SIZE, 2) - 1);
         }
 
         this.setState(prevState => ({
@@ -98,15 +88,80 @@ class BoardView extends Component {
         }));
     }
 
-    onPress = tileNumber => {
-        action("Clicked tile");
+    rearrangeTiles = async (number) => {
+        let { boardConfig } = this.props;
+        let that = this;
+        if(COUNT < Math.pow(boardConfig.SIZE, 3)) {
+            await setTimeout(function() {
+                that.onTilePress(number);
+                var flag = false;
+                while(!flag) {
+                    let { emptySlot, currentTilesPositions } = that.state;
+                    let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + boardConfig.SIZE, emptySlot - boardConfig.SIZE];
+                    let randomNumber = that.generateRandomNumber();
+                    if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < Math.pow(boardConfig.SIZE, 2) + 1 ) { //picked a tile within the limit
+                        var selectedTile = null;
+                        for (const tile in currentTilesPositions) { // get the key at the selectedPosition
+                            if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
+                                selectedTile = tile;
+                                break;
+                            }
+                        }
+                        flag = true;
+                        COUNT++;
+                        that.rearrangeTiles(parseInt(selectedTile));
+                    }
+                }
+            }, 200);
+        }
+        else {
+            // Game is starting, buttons are enabled and game is starting
+            this.setState({ isGameStarted: true }, () => {
+                this.startStopTimer();
+            });
+        }
+    }
+
+    generateRandomNumber = () => {
+        return Math.floor(Math.random() * 4);
+    }
+
+    startStopTimer = () => {
+
+        let { isRunning, mainTimer } = this.state;
+
+        // Game is finished and timer is stopped
+        if(isRunning) {
+            clearInterval(this.interval);
+            this.setState({
+                isRunning: false
+            });
+            return ;
+        }
+
+        //Game just started and set the start of the timers
+        this.setState({
+            mainTimerStart: Date.now(),
+            isRunning: true
+        }, () => {
+            // update interval
+            this.interval = setInterval(() => {
+                this.setState({
+                    mainTimer: new Date() - this.state.mainTimerStart + mainTimer
+                });
+            }, 30);
+        });
+    }
+
+    onTilePress = tileNumber => {
+        let { boardConfig } = this.props;
         let { currentTilesPositions, emptySlot } = this.state;
         var newCurrentTilesPositions = Object.assign({}, currentTilesPositions);
         var tmp = 0;
-        if(parseInt(currentTilesPositions[tileNumber]) % 3 === 0) {
+        if(parseInt(currentTilesPositions[tileNumber]) % boardConfig.SIZE === 0) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot + 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -114,10 +169,10 @@ class BoardView extends Component {
                 break;
             }
         }
-        else if(parseInt(currentTilesPositions[tileNumber]) % 3 === 1) {
+        else if(parseInt(currentTilesPositions[tileNumber]) % boardConfig.SIZE === 1) {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
                 newCurrentTilesPositions[tileNumber] = emptySlot;
@@ -127,8 +182,8 @@ class BoardView extends Component {
         }
         else {
             switch (parseInt(currentTilesPositions[tileNumber])) {
-            case emptySlot + 3:
-            case emptySlot - 3:
+            case emptySlot + boardConfig.SIZE:
+            case emptySlot - boardConfig.SIZE:
             case emptySlot + 1:
             case emptySlot - 1:
                 tmp = newCurrentTilesPositions[tileNumber];
@@ -142,9 +197,12 @@ class BoardView extends Component {
         this.setState({
             currentTilesPositions: newCurrentTilesPositions,
             emptySlot
+        }, () => {
+            if(check && this.state.isGameStarted) {
+                this.startStopTimer();
+                this.onWin();
+            }
         });
-        if(check && this.state.isGameStarted)
-            this.win();
 
         return true;
     };
@@ -160,70 +218,121 @@ class BoardView extends Component {
         return flag;
     }
 
-    win = () => {
-        //console.tron.log('win');
+    onWin = () => {
+        setTimeout(() => {
+            this.props.saveData(TimeFormatter(this.state.mainTimer));
+            this.setState({
+                showNotification: true,
+                isGameStarted: false
+            }, () => {
+                this.props.setWin(true);
+            });
+        }, 200);
     }
 
-    async rearrangeTiles () {
-        await this.onPress(8);
-
-        for(var i = 0; i < 50; i++) {
-            let { emptySlot, currentTilesPositions } = this.state;
-            let availableTiles = [emptySlot + 1, emptySlot - 1, emptySlot + 3, emptySlot - 3];
-            let randomNumber = this.generateRandomNumber();
-            // console.tron.log(emptySlot);
-            // console.tron.log(availableTiles[randomNumber]);
-            if (availableTiles[randomNumber] > 0 && availableTiles[randomNumber] < 10 ) { //picked a tile within the limit
-                var selectedTile = null;
-                for (const tile in currentTilesPositions) { // get the key at the selectedPosition
-                    if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-                        selectedTile = tile;
-                        break;
-                    }
-                }
-                // setTimeout(() => {this.onPress(parseInt(selectedTile));}, 250);
-                let result = await this.onPress(parseInt(selectedTile));
-                setTimeout(() => {console.log(result);}, 5000);
-            }
-        }
-        this.setState({ isGameStarted: true });
+    //TODO: Perhaps need to set the state to the initial state
+    onPlayagainPress = () => {
+        COUNT = 0;
+        this.setState({
+            showNotification: false,
+            isGameStarted: false,
+            mainTimer: 0
+        }, () => {
+            this.props.onPlayagainPress();
+            this.rearrangeTiles(Math.pow(this.props.boardConfig.SIZE, 2) - 1);
+        });
     }
 
-    generateRandomNumber = () => {
-        return Math.floor(Math.random() * 4);
+    onExitPressed = () => {
+        this.setState(this.INITIAL_STATE, () => {
+            this.props.navigation.goBack();
+        });
     }
 
     render() {
+        let { boardConfig } = this.props;
         return (
-            <View style={styles.container}>
-                {
-                    this.renderTiles()
-                }
+            <View style={styles.mainContainer}>
+                <View style={styles.timerContainer}>
+                    <Text style={styles.timerLabel}>
+                        TIME:
+                    </Text>
+                    <Text style={styles.timerText}>
+                        { TimeFormatter(this.state.mainTimer) }
+                    </Text>
+                </View>
+                <View style={styles.exitContainer}>
+                    <Button
+                        title="exit"
+                        style={styles.exitButton}
+                        onPress={() => null}
+                    />
+                </View>
+                <View style={[styles.boardContainer, {width: boardConfig.CELL_SIZE * boardConfig.SIZE, height: boardConfig.CELL_SIZE * boardConfig.SIZE}]}>
+                    <Notification
+                        isVisible={this.state.showNotification}
+                        animationIn={'zoomIn'}
+                        durationIn={300}
+                        animationOut={'zoomOut'}
+                        durationOut={100}
+                        onPlayagainPress={this.onPlayagainPress}
+                        onExitPressed={this.onExitPressed}
+                        timer={TimeFormatter(this.state.mainTimer)}
+                    />
+                    {
+                        this.renderTiles()
+                    }
+                </View>
             </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
-    container: {
-        width: CELL_SIZE * SIZE,
-        height: CELL_SIZE * SIZE,
+    mainContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    boardContainer: {
         backgroundColor: "transparent"
+    },
+    timerContainer: {
+        position: 'absolute',
+        top: 40,
+        left: 20
     },
     tile: {
         position: "absolute",
-        width: TILE_SIZE,
-        height: TILE_SIZE,
-        borderRadius: BORDER_RADIUS,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#FFF",
-        opacity: 0.9
+        opacity: 1
     },
     letter: {
-        fontSize: LETTER_SIZE,
         opacity: 1,
         backgroundColor: "transparent"
+    },
+    timerLabel: {
+        color: '#e3e5e8',
+        fontSize: 15,
+        fontWeight: 'bold'
+    },
+    timerText: {
+        color: '#FFF',
+        fontSize: 25
+    },
+    exitContainer: {
+        position: 'absolute',
+        width: 50,
+        height: 50,
+        top: 40,
+        left: Dimensions.get('window').width - 50,
+        backgroundColor: '#FFF',
+        borderRadius: 50
+    },
+    exitButton: {
+        backgroundColor: 'transparent'
     }
 });
 
