@@ -30,24 +30,27 @@ class MenuScreen extends Component {
 
     componentDidMount() {
         this.getData();
-        this.animate();
+        let that = this;
+        setTimeout(() => {
+            that.animate();
+        }, 200);
     }
 
     animate = () => {
         Animated.stagger(200, [
             Animated.spring(this.animated4, {
                 toValue: 1,
-                duration: 250,
+                duration: 500,
                 friction: 5
             }),
             Animated.spring(this.animated3, {
                 toValue: 1,
-                duration: 250,
+                duration: 500,
                 friction: 5
             }),
             Animated.spring(this.animatedScore, {
                 toValue: 1,
-                duration: 250,
+                duration: 500,
                 friction: 5
             })
         ]).start();
@@ -58,10 +61,6 @@ class MenuScreen extends Component {
         try {
             const value3 = await AsyncStorage.getItem("puzzleHighScore3");
             const value4 = await AsyncStorage.getItem("puzzleHighScore4");
-            // this.setState({
-            //     highScore3: value3 ? value3 : 'None',
-            //     highScore4: value4 ? value4 : 'None'
-            // });
             value3 ? this.props.gameStore.updateScore(3, value3) : null;
             value4 ? this.props.gameStore.updateScore(4, value4) : null;
         } catch (error) {
@@ -145,7 +144,7 @@ class MenuScreen extends Component {
                     top: positionScore,
                     left: Math.floor(metrics.width * 0.1)
                 }}>
-                    <Text style={styles.highscoresLable}>Your highest scores are:</Text>
+                    <Text style={styles.highscoresLabel}>Your highest scores are:</Text>
                     <View style={styles.scoreBoard}>
                         <Text style={[styles.scoreLabel, {marginBottom: 10}]}>{'3X3 Puzzle Score: ........ '}
                             <Text style={highScore3 === 'None' ? styles.noScore : styles.score}>{highScore3}</Text>
@@ -182,7 +181,7 @@ const styles = StyleSheet.create({
         backgroundColor: "transparent",
         color: "#1bd2d4"
     },
-    highscoresLable: {
+    highscoresLabel: {
         color: '#FFF',
         fontSize: metrics.height * 0.04,
         alignSelf: 'center'
@@ -192,7 +191,7 @@ const styles = StyleSheet.create({
         height: metrics.height * 0.075,
         justifyContent: "center",
         marginTop: 10,
-        paddingHorizontal: 20,
+        paddingHorizontal: 10,
         paddingVertical: 40
     },
     scoreLabel: {

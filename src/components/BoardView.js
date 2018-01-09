@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, Text, Button, Dimensions, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, TouchableOpacity } from 'react-native';
 import TimeFormatter from 'minutes-seconds-milliseconds';
 
 import Tile from './Tile';
@@ -110,9 +110,11 @@ class BoardView extends Component {
                             var selectedTile = null;
                             for (const tile in currentTilesPositions) { // get the key at the selectedPosition
                                 if(parseInt(currentTilesPositions[tile]) === parseInt(availableTiles[randomNumber])) {
-                                    if((tile == OCCURING_COUNT.tileNumber && OCCURING_COUNT.count < 2) || (tile != OCCURING_COUNT.tileNumber )) {
+                                    if((tile != OCCURING_COUNT.tileNumber )) {
                                         selectedTile = tile;
-                                        OCCURING_COUNT.count = tile != OCCURING_COUNT.tileNumber ? 0 : OCCURING_COUNT.count + 1;
+                                        flag = true;
+                                        COUNT++;
+                                        that.rearrangeTiles(parseInt(selectedTile));
                                         break;
                                     }
                                     else if (tile == OCCURING_COUNT.tileNumber && OCCURING_COUNT.count == 2) {
@@ -120,9 +122,6 @@ class BoardView extends Component {
                                     }
                                 }
                             }
-                            flag = true;
-                            COUNT++;
-                            that.rearrangeTiles(parseInt(selectedTile));
                         }
                     }
                 }, 200);
@@ -351,7 +350,7 @@ const styles = StyleSheet.create({
         width: 25,
         height: 25,
         top: 40,
-        left: Dimensions.get('window').width - 30,
+        left: Dimensions.get('window').width - 35,
         backgroundColor: '#FFF',
         borderRadius: 50,
         alignItems: 'center',
