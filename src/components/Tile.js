@@ -57,7 +57,7 @@ class Tile extends Component {
         let { tileStyle, textStyle, onPress, tileNumber, disabled } = this.props;
         let textColor = this.checkCorrectPosition() ? '#1bd2d4' : '#000';
         return (
-            <TouchableOpacity disabled={disabled} activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}
+            <TouchableOpacity hitSlop={{top: 10, right: 10, left: 10, bottom: 10}}disabled={disabled} activeOpacity={1} onPress={() => onPress(tileNumber, this.currentPosition)}
                 onLayout={this.onLayout}
             >
                 <Animated.View style={[tileStyle, {
